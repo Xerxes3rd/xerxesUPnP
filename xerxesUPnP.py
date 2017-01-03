@@ -41,8 +41,8 @@ class xerxesUPnP:
     suppressMirandaSTDOUT = True
     routerIndex = -1
 
-    def lookup(ip):
-      f = unpack('!I', inet_pton(AF_INET, ip))[0]
+    def isPrivate(self, ip):
+      f = unpack('!I', socket.inet_pton(socket.AF_INET, ip))[0]
       private = (
           [2130706432, 4278190080],  # 127.0.0.0,   255.0.0.0   http://tools.ietf.org/html/rfc3330
           [3232235520, 4294901760],  # 192.168.0.0, 255.255.0.0 http://tools.ietf.org/html/rfc1918
@@ -132,8 +132,15 @@ class xerxesUPnP:
             hostInfo = self.hp.ENUM_HOSTS[index]
             if hostInfo['dataComplete'] == True:
                 if 'WANConnectionDevice' in hostInfo['deviceList']:
+                    resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'GetExternalIPAddress', {})
+                    hostInfo['NewExternalIPAddress'] = resp['NewExternalIPAddress']
+                    hostInfo['IPAddress'] = str.split(hostInfo['name'], ':')[0]
                     #print hostInfo
-                    return index
+                    if hostInfo['NewExternalIPAddress'] != hostInfo['IPAddress']:
+                        if self.isPrivate(hostInfo['NewExternalIPAddress']):
+                            print "Skipping host " + ostInfo['name'] + ": no public IP address"
+                        else:
+                            return index
         return -1
 
     def requestDeviceInfo(self, index):
