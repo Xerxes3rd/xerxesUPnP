@@ -44,6 +44,7 @@ if __name__ == "__main__":
     loop = True
     upnp = xerxesUPnP.xerxesUPnP()
     upnp.suppressMirandaSTDOUT = False
+    upnp.printPortMappingResponse = True
     upnp.startThreads()
 
     #time.sleep(10)
