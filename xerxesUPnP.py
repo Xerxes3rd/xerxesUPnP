@@ -40,6 +40,7 @@ class xerxesUPnP:
     searchThread = None
     suppressMirandaSTDOUT = True
     routerIndex = -1
+    printPortMappingResponse = True
 
     def isPrivate(self, ip):
       f = unpack('!I', socket.inet_pton(socket.AF_INET, ip))[0]
@@ -173,11 +174,15 @@ class xerxesUPnP:
         args = {'NewExternalPort': wanPort,
                 'NewProtocol': proto,
                 'NewRemoteHost': ''}
-        self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'DeletePortMapping', args)
+        resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'DeletePortMapping', args)
+        if self.printPortMappingResponse:
+            print resp
 
         if bothTCPandUDP:
             args['NewProtocol'] = 'UDP'
             resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'DeletePortMapping', args)
+            if self.printPortMappingResponse:
+                print resp
 
     def addPortMapping(self, index, proto, wanPort, lanPort, host, description):
         bothTCPandUDP = False
@@ -201,10 +206,15 @@ class xerxesUPnP:
         }
 
         resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'AddPortMapping', args)
+        if self.printPortMappingResponse:
+            print resp
 
         if bothTCPandUDP:
             args['NewProtocol'] = 'UDP'
             resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'AddPortMapping', args)
+
+            if self.printPortMappingResponse:
+                print resp
 
     def showPortMapping(self, index, proto, wanPort):
         bothTCPandUDP = False
