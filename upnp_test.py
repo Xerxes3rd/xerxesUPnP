@@ -19,7 +19,7 @@ upnpPortMappings = {
     ('UDP',  1028, 'DreamPi PR'),
 }
 upnpPortRangeMappings = {
-    ('BOTH', 2300, 2400, 'DreamPi PBA SL'),
+    #('BOTH', 2300, 2400, 'DreamPi PBA SL'),
 }
 
 def signal_handler(signal, frame):
@@ -29,42 +29,37 @@ def signal_handler(signal, frame):
         upnp.stopThreads()
     sys.exit(0)
 
-def doPortMapping(ip, add):
-    global upnp, upnpPortMappings, upnpPortRangeMappings
-    index = upnp.findRouterIndex()
-    #index = 0
-    # resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'GetExternalIPAddress', {})
-    # print resp
-
-    if index >= 0:
-        for entry in upnpPortMappings:
-            if add:
-                upnp.addPortMapping(index, entry[0], entry[1], entry[1], ip, entry[2])
-            else:
-                upnp.delPortMapping(index, entry[0], entry[1])
-
-        for entry in upnpPortRangeMappings:
-            start = entry[1]
-            end = entry[2]
-            while start <= end:
-                if add:
-                    upnp.addPortMapping(index, entry[0], start, start, ip, entry[2])
-                else:
-                    upnp.delPortMapping(index, entry[0], start)
-                start = start + 1
+def runTests():
+    global upnp
+    upnp.showDeviceInfo(upnp.routerIndex)
+    print upnp.sendReq(upnp.routerIndex, 'WANConnectionDevice', 'WANIPConnection', 'GetExternalIPAddress', {})
+    upnp.doPortMapping('192.168.1.98', upnpPortMappings, upnpPortRangeMappings, True)
+    upnp.showPortMappings(upnpPortMappings, upnpPortRangeMappings)
+    time.sleep(1)
+    upnp.doPortMapping('192.168.1.98', upnpPortMappings, upnpPortRangeMappings, False)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
+    timeoutSeconds = 30
+    loop = True
     upnp = xerxesUPnP.xerxesUPnP()
+    upnp.suppressMirandaSTDOUT = False
     upnp.startThreads()
 
-    time.sleep(5)
-    doPortMapping('192.168.1.98', True)
-    time.sleep(1)
-    doPortMapping('192.168.1.98', False)
+    #time.sleep(10)
 
     #for t in upnp.THREADS:
     #    t.join(1)
 
-    while True:
+    start = time.time()
+    while loop:
         time.sleep(0.5)
+        if (time.time() - start) > timeoutSeconds:
+            print "Timed out finding WAN device"
+            loop = False
+        if upnp.routerIndex >= 0:
+            print "Found router index, running tests"
+            runTests()
+            loop = False
+
+    upnp.stopThreads()

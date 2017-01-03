@@ -38,6 +38,8 @@ class xerxesUPnP:
     hp = None
     readThread = None
     searchThread = None
+    suppressMirandaSTDOUT = True
+    routerIndex = -1
 
     def lookup(ip):
       f = unpack('!I', inet_pton(AF_INET, ip))[0]
@@ -95,13 +97,21 @@ class xerxesUPnP:
         while self.run:
             try:
                 data = self.hp.recv(1024, self.hp.ssock)
+                stdoutSuppressed = False
 
-                if data != None:
-                    actualstdout = sys.stdout
-                    sys.stdout = open(os.devnull,'w')
+                if (data != None) and (data != False):
+                    if self.suppressMirandaSTDOUT:
+                        actualstdout = sys.stdout
+                        sys.stdout = open(os.devnull,'w')
+                        stdoutSuppressed = True
                     self.hp.parseSSDPInfo(data, False, False)
-                    sys.stdout = actualstdout
-                    sys.stdout.flush()
+                    if stdoutSuppressed:
+                        sys.stdout = actualstdout
+                        sys.stdout.flush()
+
+                    if self.routerIndex == -1:
+                        self.routerIndex = self.findRouterIndex()
+                        print "Router index is " + str(self.routerIndex)
 
                 #index = self.findRouterIndex()
 
@@ -126,20 +136,6 @@ class xerxesUPnP:
                     return index
         return -1
 
-    def doPortMapping(self):
-        index = self.findRouterIndex()
-        resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'GetExternalIPAddress', {})
-        # print resp
-
-        if index >= 0:
-
-            start = 2300
-            end = 2400
-            while start <= end:
-                self.addPortMapping(index, 'BOTH', start, start, '192.168.1.98', 'DreamPi ' + str(start) + ' (BOTH)')
-                # delPortMapping(index, 'BOTH', start)
-                start = start + 1
-
     def requestDeviceInfo(self, index):
         if index >= 0:
             hostInfo = self.hp.ENUM_HOSTS[index]
@@ -154,6 +150,9 @@ class xerxesUPnP:
                     return
                 print 'Host data enumeration complete for %s.' % hostInfo['name']
                 #self.hp.showCompleteHostInfo(index, False)
+
+    def showDeviceInfo(self, index):
+        self.hp.showCompleteHostInfo(index, False)
 
     def delPortMapping(self, index, proto, wanPort):
         bothTCPandUDP = False
@@ -200,6 +199,27 @@ class xerxesUPnP:
             args['NewProtocol'] = 'UDP'
             resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'AddPortMapping', args)
 
+    def showPortMapping(self, index, proto, wanPort):
+        bothTCPandUDP = False
+
+        if proto == 'BOTH':
+            bothTCPandUDP = True
+            proto = 'TCP'
+
+        args = {
+            'NewRemoteHost': '',
+            'NewExternalPort': wanPort,
+            'NewProtocol': proto,
+        }
+
+        resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'GetSpecificPortMappingEntry', args)
+        print resp
+
+        if bothTCPandUDP:
+            args['NewProtocol'] = 'UDP'
+            resp = self.sendReq(index, 'WANConnectionDevice', 'WANIPConnection', 'GetSpecificPortMappingEntry', args)
+            print resp
+
     def sendReq(self,index,deviceName,serviceName,actionName,sendArgs):
         try:
             hostInfo = self.hp.ENUM_HOSTS[index]
@@ -215,7 +235,7 @@ class xerxesUPnP:
         actionArgs = False
         inValueMissing = False
 
-        if len(sendArgs) == 0:
+        if (sendArgs == None) or len(sendArgs) == 0:
             sendArgs = {}
 
         #print sendArgs
@@ -303,3 +323,37 @@ class xerxesUPnP:
                 self.hp.ssock.shutdown(socket.SHUT_WR)
             except:
                 None
+
+    def doPortMapping(self, ip, upnpPortMappings, upnpPortRangeMappings, add):
+        index = self.routerIndex
+
+        if index >= 0:
+            for entry in upnpPortMappings:
+                if add:
+                    self.addPortMapping(index, entry[0], entry[1], entry[1], ip, entry[2])
+                else:
+                    self.delPortMapping(index, entry[0], entry[1])
+
+            for entry in upnpPortRangeMappings:
+                start = entry[1]
+                end = entry[2]
+                while start <= end:
+                    if add:
+                        self.addPortMapping(index, entry[0], start, start, ip, entry[3])
+                    else:
+                        self.delPortMapping(index, entry[0], start)
+                    start = start + 1
+
+    def showPortMappings(self, upnpPortMappings, upnpPortRangeMappings):
+        index = self.routerIndex
+
+        if index >= 0:
+            for entry in upnpPortMappings:
+                self.showPortMapping(index, entry[0], entry[1])
+
+            for entry in upnpPortRangeMappings:
+                start = entry[1]
+                end = entry[2]
+                while start <= end:
+                    self.showPortMapping(index, entry[0], start)
+                    start = start + 1
