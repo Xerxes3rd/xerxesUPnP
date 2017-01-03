@@ -7,7 +7,7 @@ To test your UPnP device, clone this repository with:
 
 `git clone https://github.com/Xerxes3rd/xerxesUPnP.git`
 
-(or, if you've already cloned it, run: `cd xerxesUPnP/ && git pull && cd -`)
+(or, if you've already cloned it, run: `cd xerxesUPnP/ && git pull && cd -` to get the latest version)
 
 Then run the test app and save the output:
 
