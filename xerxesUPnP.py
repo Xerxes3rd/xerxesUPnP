@@ -139,7 +139,7 @@ class xerxesUPnP:
                     #print hostInfo
                     if hostInfo['NewExternalIPAddress'] != hostInfo['IPAddress']:
                         if self.isPrivate(hostInfo['NewExternalIPAddress']):
-                            print "Skipping host " + ostInfo['name'] + ": no public IP address"
+                            print "Skipping host " + hostInfo['name'] + ": no public IP address"
                         else:
                             return index
         return -1
