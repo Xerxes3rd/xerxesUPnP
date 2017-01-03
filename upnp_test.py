@@ -17,6 +17,7 @@ upnpPortMappings = {
     ('UDP',  7648, 'DreamPi PR'),
     ('UDP',  1285, 'DreamPi PR'),
     ('UDP',  1028, 'DreamPi PR'),
+    ('TCP', 17219, 'DreamPi WWP'),
 }
 upnpPortRangeMappings = {
     #('BOTH', 2300, 2400, 'DreamPi PBA SL'),
