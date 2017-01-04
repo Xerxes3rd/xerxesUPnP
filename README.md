@@ -5,13 +5,13 @@ xerxesUPnP is an easy-to-use python library for managing UPnP port forwarding.  
 ## Testing
 To test your UPnP device, clone this repository with:
 
-`git clone https://github.com/Xerxes3rd/xerxesUPnP.git`
+`cd ~ && git clone https://github.com/Xerxes3rd/xerxesUPnP.git && cd -`
 
-(or, if you've already cloned it, run: `cd xerxesUPnP/ && git pull && cd -` to get the latest version)
+(or, if you've already cloned it, run: `cd ~/xerxesUPnP/ && git pull && cd -` to get the latest version)
 
 Then run the test app and save the output:
 
-`./xerxesUPnP/upnp_test.py > test.txt`
+`~/xerxesUPnP/upnp_test.py > test.txt`
 
 Copy the test output to sprunge:
 
