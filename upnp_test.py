@@ -32,12 +32,13 @@ def signal_handler(signal, frame):
 
 def runTests():
     global upnp
+    dreamcast_ip = '192.168.1.98'
     upnp.showDeviceInfo(upnp.routerIndex)
     print upnp.sendReq(upnp.routerIndex, 'WANConnectionDevice', 'WANIPConnection', 'GetExternalIPAddress', {})
-    upnp.doPortMapping('192.168.1.98', upnpPortMappings, upnpPortRangeMappings, True)
+    upnp.doPortMapping(dreamcast_ip, upnpPortMappings, upnpPortRangeMappings, True)
     upnp.showPortMappings(upnpPortMappings, upnpPortRangeMappings)
     time.sleep(1)
-    upnp.doPortMapping('192.168.1.98', upnpPortMappings, upnpPortRangeMappings, False)
+    upnp.doPortMapping(dreamcast_ip, upnpPortMappings, upnpPortRangeMappings, False)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
