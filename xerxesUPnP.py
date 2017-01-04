@@ -40,7 +40,8 @@ class xerxesUPnP:
     searchThread = None
     suppressMirandaSTDOUT = True
     routerIndex = -1
-    printPortMappingResponse = True
+    printPortMappingResponse = False
+    printAllSOAPResponses = False
 
     def isPrivate(self, ip):
       f = unpack('!I', socket.inet_pton(socket.AF_INET, ip))[0]
@@ -139,9 +140,11 @@ class xerxesUPnP:
                     #print hostInfo
                     if hostInfo['NewExternalIPAddress'] != hostInfo['IPAddress']:
                         if self.isPrivate(hostInfo['NewExternalIPAddress']):
-                            print "Skipping host " + hostInfo['name'] + ": no public IP address"
+                            print "Skipping host " + hostInfo['name'] + ": external IP address is: " + hostInfo['NewExternalIPAddress']
                         else:
                             return index
+                    else:
+                        print "Skipping host " + hostInfo['name'] + ": external IP matches LAN IP"
         return -1
 
     def requestDeviceInfo(self, index):
@@ -308,6 +311,8 @@ class xerxesUPnP:
         # print 'Requesting',controlURL
         soapResponse = self.hp.sendSOAP(hostInfo['name'], fullServiceName, controlURL, actionName, newSendArgs)
         if soapResponse != False:
+            if self.printAllSOAPResponses:
+                print soapResponse
             # It's easier to just parse this ourselves...
             for (tag, dataType) in retTags:
                 tagValue = self.hp.extractSingleTag(soapResponse, tag)
