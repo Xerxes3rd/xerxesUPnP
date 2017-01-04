@@ -80,7 +80,7 @@ class xerxesUPnP:
             sys.stdout.flush()
             try:
                 if time.time() - last > 5 and (self.hp.MAX_HOSTS == 0 or (self.hp.ENUM_HOSTS) < self.hp.MAX_HOSTS):
-                    print "Searching for " + searchType + " devices...\n"
+                    #print "Searching for " + searchType + " devices...\n"
                     self.hp.send(request, self.hp.ssock)
                     last = time.time()
 
