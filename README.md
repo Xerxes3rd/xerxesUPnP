@@ -9,12 +9,8 @@ To test your UPnP device, clone this repository with:
 
 (or, if you've already cloned it, run: `cd ~/xerxesUPnP/ && git pull && cd -` to get the latest version)
 
-Then run the test app and save the output:
+Then run the test app send the output to sprunge:
 
-`~/xerxesUPnP/upnp_test.py > test.txt`
-
-Copy the test output to sprunge:
-
-`cat test.txt | curl -F 'sprunge=<-' http://sprunge.us`
+`~/xerxesUPnP/upnp_test.py | curl -F 'sprunge=<-' http://sprunge.us`
 
 Then, send the resulting link to someone (probably me) for analysis.
